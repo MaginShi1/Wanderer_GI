@@ -1,0 +1,3 @@
+<items gfxroot="gfx/items/" version ="1">
+    <passive cache="firedelay damage range" description="Anemo god blesses you" gfx="Wanderer_Hat.png" id="1" quality="3" name="Wanderer Hat" />
+</items>
