@@ -48,7 +48,7 @@ function Wanderer_GI:OnUpdateEf(player)
                     local tear = entity:ToTear()
                     tearData.WINDBLADE = 1
                     tear:ChangeVariant(Ids.VARIANT)
-                    local scale = tear.BaseDamage / 9 + 0.4
+                    local scale = tear.BaseDamage / 11 + 0.4
                     tear:GetSprite().Scale = Vector(scale, scale)
                 else
                     tearData.WINDBLADE = 0
@@ -58,7 +58,7 @@ function Wanderer_GI:OnUpdateEf(player)
     end
 end
 
--- To remove under?
+-- TO KEEP
 
 function Wanderer_GI:onUpdate(player)
     if game:GetFrameCount() == 1 then
@@ -69,15 +69,13 @@ end
 -- To get tear rotation/direction
 -- Maybe move somewhere later?
 
+function Wanderer_GI:onPlayerInit(player)
+    HasHat = player:HasCollectible(Ids.Funny_Hat)
+end
+
 function Wanderer_GI:Rotation(tear)
     tear.SpriteRotation = (tear.Velocity + Vector(0, tear.FallingSpeed)):GetAngleDegrees()
     
-end
-
--- Maybe to remove
-
-function Wanderer_GI:onPlayerInit(player)
-    HasHat = player:HasCollectible(Ids.Funny_Hat)
 end
 
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.onUpdate)
