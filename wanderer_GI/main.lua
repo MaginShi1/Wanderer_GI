@@ -4,7 +4,7 @@ local game = Game()
 local Ids = {
     Funny_Hat = Isaac.GetItemIdByName("Wanderer Hat"),
     COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/Wanderer_Costume.anm2"),
-    VARIANT = Isaac.GetEntityVariantByName("Wind_Blade_WAND")
+    VARIANT = Isaac.GetEntityVariantByName("WB WAND")
 }
 
 local tearBonusT = {
@@ -13,6 +13,12 @@ local tearBonusT = {
     fdFH = 1.25,
     rangerFH = 30
 }
+
+local tearAnimation = {} 
+local TEAR_ANM_NAME = nil
+local TEAR_POINTER = nil
+
+print(Ids.VARIANT)
 
 TearFlags = {
     FLAG_NO_EFFECT = 0,
@@ -111,8 +117,10 @@ function Wanderer_GI:OnUpdateEf(player)
                     local tear = entity:ToTear()
                     tearData.WINDBLADE = 1
                     tear:ChangeVariant(Ids.VARIANT)
-                    local scale = tear.BaseDamage / 6 + 0.4
+                    local scale = tear.BaseDamage / 9 + 0.4
                     tear:GetSprite().Scale = Vector(scale, scale)
+                else
+                    tearData.WINDBLADE = 0
                 end
             end
         end
@@ -125,10 +133,17 @@ function Wanderer_GI:onUpdate(player)
     end
 end
 
+function Wanderer_GI:Rotation(tear)
+    tear.SpriteRotation = (tear.Velocity + Vector(0, tear.FallingSpeed)):GetAngleDegrees()
+    
+end
+
+
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.onUpdate)
 Wanderer_GI:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Wanderer_GI.cacheUpdate)
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.OnUpdateEf)
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, Wanderer_GI.onPlayerInit)
+Wanderer_GI:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, Wanderer_GI.Rotation)
 
 -- function Wanderer_GI:onDamage(entity, amt, flag, source, countdown)
 --     if source.Type == EntityType.ENTITY_TEAR
