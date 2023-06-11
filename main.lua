@@ -14,11 +14,79 @@ local tearBonusT = {
     rangerFH = 30
 }
 
-local tearAnimation = {} 
-local TEAR_ANM_NAME = nil
-local TEAR_POINTER = nil
+function Wanderer_GI:cacheUpdate(player, cacheFlag)
+    if player:HasCollectible(Ids.Funny_Hat) then
+        if cacheFlag == CacheFlag.CACHE_DAMAGE then
+            player.Damage = player.Damage + tearBonusT.damageFH
+        end
+        if cacheFlag == CacheFlag.CACHE_FIREDELAY then
+            if player.MaxFireDelay > tearBonusT.MIN_FIRE_DELAY then
+                local TearBonus = math.min(
+                    tearBonusT.fdFH * player:GetCollectibleNum(Ids.Funny_Hat),
+                    player.MaxFireDelay - tearBonusT.MIN_FIRE_DELAY
+                )
+                player.MaxFireDelay = player.MaxFireDelay - TearBonus
+            end
+        end
+        if cacheFlag == CacheFlag.CACHE_RANGE then
+            player.TearRange = player.TearRange + tearBonusT.rangerFH
+        end
+    end
+end
 
-print(Ids.VARIANT)
+
+function Wanderer_GI:OnUpdateEf(player)
+    if not HasHat and player:HasCollectible(Ids.Funny_Hat) then
+        player:AddNullCostume(Ids.COSTUME)
+        HasHat = true
+    end
+    if HasHat then
+        for _, entity in pairs(Isaac.GetRoomEntities()) do
+            if entity.Type == EntityType.ENTITY_TEAR then
+                local tearData = entity:GetData()
+                if tearData.WINDBLADE == nil then
+                    local tear = entity:ToTear()
+                    tearData.WINDBLADE = 1
+                    tear:ChangeVariant(Ids.VARIANT)
+                    local scale = tear.BaseDamage / 9 + 0.4
+                    tear:GetSprite().Scale = Vector(scale, scale)
+                else
+                    tearData.WINDBLADE = 0
+                end
+            end
+        end
+    end
+end
+
+-- To remove under?
+
+function Wanderer_GI:onUpdate(player)
+    if game:GetFrameCount() == 1 then
+        Wanderer_GI.HasHat = false
+    end
+end
+
+-- To get tear rotation/direction
+-- Maybe move somewhere later?
+
+function Wanderer_GI:Rotation(tear)
+    tear.SpriteRotation = (tear.Velocity + Vector(0, tear.FallingSpeed)):GetAngleDegrees()
+    
+end
+
+-- Maybe to remove
+
+function Wanderer_GI:onPlayerInit(player)
+    HasHat = player:HasCollectible(Ids.Funny_Hat)
+end
+
+Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.onUpdate)
+Wanderer_GI:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Wanderer_GI.cacheUpdate)
+Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.OnUpdateEf)
+Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, Wanderer_GI.onPlayerInit)
+Wanderer_GI:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, Wanderer_GI.Rotation)
+
+-- Future ref for tear flags
 
 TearFlags = {
     FLAG_NO_EFFECT = 0,
@@ -79,76 +147,3 @@ TearFlags = {
     FLAG_LITTLE_HORN = 1 << 54,
     FLAG_GHOST_PEPPER = 1 << 55
 }
-
-function Wanderer_GI:cacheUpdate(player, cacheFlag)
-    if player:HasCollectible(Ids.Funny_Hat) then
-        if cacheFlag == CacheFlag.CACHE_DAMAGE then
-            player.Damage = player.Damage + tearBonusT.damageFH
-        end
-        if cacheFlag == CacheFlag.CACHE_FIREDELAY then
-            if player.MaxFireDelay > tearBonusT.MIN_FIRE_DELAY then
-                local TearBonus = math.min(
-                    tearBonusT.fdFH * player:GetCollectibleNum(Ids.Funny_Hat),
-                    player.MaxFireDelay - tearBonusT.MIN_FIRE_DELAY
-                )
-                player.MaxFireDelay = player.MaxFireDelay - TearBonus
-            end
-        end
-        if cacheFlag == CacheFlag.CACHE_RANGE then
-            player.TearRange = player.TearRange + tearBonusT.rangerFH
-        end
-    end
-end
-
-function Wanderer_GI:onPlayerInit(player)
-    HasHat = player:HasCollectible(Ids.Funny_Hat)
-end
-
-function Wanderer_GI:OnUpdateEf(player)
-    if not HasHat and player:HasCollectible(Ids.Funny_Hat) then
-        player:AddNullCostume(Ids.COSTUME)
-        HasHat = true
-    end
-    if HasHat then
-        for _, entity in pairs(Isaac.GetRoomEntities()) do
-            if entity.Type == EntityType.ENTITY_TEAR then
-                local tearData = entity:GetData()
-                if tearData.WINDBLADE == nil then
-                    local tear = entity:ToTear()
-                    tearData.WINDBLADE = 1
-                    tear:ChangeVariant(Ids.VARIANT)
-                    local scale = tear.BaseDamage / 9 + 0.4
-                    tear:GetSprite().Scale = Vector(scale, scale)
-                else
-                    tearData.WINDBLADE = 0
-                end
-            end
-        end
-    end
-end
-
-function Wanderer_GI:onUpdate(player)
-    if game:GetFrameCount() == 1 then
-        Wanderer_GI.HasHat = false
-    end
-end
-
-function Wanderer_GI:Rotation(tear)
-    tear.SpriteRotation = (tear.Velocity + Vector(0, tear.FallingSpeed)):GetAngleDegrees()
-    
-end
-
-
-Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.onUpdate)
-Wanderer_GI:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Wanderer_GI.cacheUpdate)
-Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.OnUpdateEf)
-Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, Wanderer_GI.onPlayerInit)
-Wanderer_GI:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, Wanderer_GI.Rotation)
-
--- function Wanderer_GI:onDamage(entity, amt, flag, source, countdown)
---     if source.Type == EntityType.ENTITY_TEAR
---     and source.Variant == TearVariant.WINDBLAD
---     then
---         game -- later
---     end
--- end
