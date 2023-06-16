@@ -2,17 +2,25 @@ local Wanderer_GI = RegisterMod("Wanderer", 1)
 local game = Game()
 
 local Ids = {
-    Funny_Hat = Isaac.GetItemIdByName("Wanderer Hat"),
-    COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/Wanderer_Costume.anm2"),
-    VARIANT = Isaac.GetEntityVariantByName("WB WAND")
+    Funny_Hat = Isaac.GetItemIdByName("Wanderer Hat"),                              -- Item id
+    COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/Wanderer_Costume.anm2"),     -- Costume id
+    VARIANT = Isaac.GetEntityVariantByName("WB WAND"),                              -- Tear id
+    -- TEAR_POOF= Isaac.GetEntityVariantByName("Tear Poof"),                           -- Tear Poof 
+    -- TEAR_POOF2 = Isaac.GetEntityVariantByName("Tear Poof2")                         -- Tear Poof 2
 }
 
+-- Tear Bonuses
+
 local tearBonusT = {
-    MIN_FIRE_DELAY = 5,
-    damageFH = 1.25,
-    fdFH = 1.25,
-    rangerFH = 30
+    MIN_FIRE_DELAY = 5,     -- Min Fire rate
+    damageFH = 1.25,        -- Damage
+    fdFH = 1.25,            -- Tear Rate
+    rangerFH = 30           -- Range
 }
+
+-- local tearTints = {}
+-- local deadTears = {}
+-- local clock = 0
 
 function Wanderer_GI:cacheUpdate(player, cacheFlag)
     if player:HasCollectible(Ids.Funny_Hat) then
@@ -58,6 +66,71 @@ function Wanderer_GI:OnUpdateEf(player)
     end
 end
 
+-- function isVariant(variant, variants)
+--     for i = 1, #variants do
+--         if variant == variants[i] then
+--             return true
+--         end
+--     end
+--     return false  
+-- end
+
+-- function getPoofVariant(scale, height)
+--     if scale > 1.8625 then
+--         if height < -5 then
+--             return Ids.TEAR_POOF2    -- Wall impact
+--         else
+--             return Ids.TEAR_POOF    -- Floor impact
+--         end
+--     elseif scale > 0.8 then
+--         if height < -5 then
+--             return EffectVariant.Ids.TEAR_POOF2    -- Wall impact
+--         else
+--             return EffectVariant.Ids.TEAR_POOF    -- Floor impact
+--         end
+--     elseif scale > 0.4 then
+--         return EffectVariant.TEAR_POOF_SMALL
+--     else
+--         return EffectVariant.TEAR_POOF_VERYSMALL
+--     end
+-- end
+
+-- function Wanderer_GI:tearsDeath()
+
+--     clock = clock + 1
+--     if clock > 600 then
+--         clock = 0
+--     end
+
+--     local i = 1
+--     while (i <= #deadTears) do
+--         if deadTears[i][2] == 1 then
+--             deadTears[i][2] = 2
+--         elseif deadTears[i][2] == 2 then
+--             local tear = deadTears[i][1]
+--             if tear:IsDead() then
+--                 TEAR_SCALE = tear:ToTear().Scale
+--                 TEAR_HEIGHT = tear.Height
+--                 TEAR_POS = tear.Position
+--                 TEAR_VARIANT = tear.Variant
+--                 TEAR_POINTER = GetPtrHash(tear)
+--                 TEAR_COLOR = tearTints[TEAR_POINTER]
+
+--                 local poofSize = getPoofVariant(TEAR_SCALE, TEAR_HEIGHT)
+
+--                 local poof
+
+--                 if isVariant(poofSize, {Ids.TEAR_POOF2, Ids.TEAR_POOF}) then
+--                     poof:GetSprite().Rotation = math.random(4) * 90
+--                 end
+--             end
+--             table.remove(deadTears, i)
+--             i = i-1
+--         end
+--         i = i+1
+--     end
+-- end
+
 -- TO KEEP
 
 function Wanderer_GI:onUpdate(player)
@@ -75,13 +148,17 @@ end
 
 function Wanderer_GI:Rotation(tear)
     tear.SpriteRotation = (tear.Velocity + Vector(0, tear.FallingSpeed)):GetAngleDegrees()
-    
+    -- if tear:IsDead() then
+    --     table.insert(deadTears, {tear, 1, TEAR_COLOR})
+    -- end
 end
 
+-- Call back area
 
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.onUpdate)
 Wanderer_GI:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Wanderer_GI.cacheUpdate)
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.OnUpdateEf)
+--Wanderer_GI:AddCallback(ModCallbacks.MC_POST_UPDATE, Wanderer_GI.tearsDeath)
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, Wanderer_GI.onPlayerInit)
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, Wanderer_GI.Rotation)
 
