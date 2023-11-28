@@ -51,16 +51,21 @@ function Wanderer_GI:OnUpdateEf(player)
                     tear:ChangeVariant(Ids.VARIANT)
                     local scale = tear.BaseDamage / 11 + 0.4
                     tear:GetSprite().Scale = Vector(scale, scale)
+
+                    -- Store tear velocity in tear data
+                    tearData.TearVelocity = tear.Velocity
                 else
                     tearData.WINDBLADE = 0
                     if entity:IsDead() then
-                        Wanderer_GI:SpawnTearPoof(entity.Position)
+                        local tearVelocity = tearData.TearVelocity or Vector(0, 0)
+                        Wanderer_GI:SpawnTearPoof(entity.Position, tearVelocity)
                     end
                 end
             end
         end
     end
 end
+
 
 function Wanderer_GI:onUpdate(player)
     if game:GetFrameCount() == 1 then
@@ -80,25 +85,32 @@ function Wanderer_GI:Rotation(tear)
 end
 
 -- TEAR POOF
-function Wanderer_GI:SpawnTearPoof(position)
+function Wanderer_GI:SpawnTearPoof(position, tearVelocity)
     local poof = Isaac.Spawn(EntityType.ENTITY_EFFECT, Ids.TEAR_POOF, 0, position, Vector(0, 0), nil)
     poof:GetSprite():Play("Poof", true)
-    
+
     local entities = Isaac.GetRoomEntities()
 
     for _, entity in pairs(entities) do
         if entity:IsActiveEnemy() then
             local entityPosition = entity.Position
-            
+
             -- knockback
             local direction = (position - entityPosition):Normalized()
-            entity.Velocity = entity.Velocity + direction * 10 
-
-            -- vacuum 
-            entity.Position = entity.Position + direction * 5 
+            entity.Velocity = entity.Velocity + direction * 10
         end
     end
+
+    poof.Position = position
+    poof:GetSprite().Rotation = tearVelocity:GetAngleDegrees()
+    poof.Velocity = Vector(0, 0)
 end
+
+
+
+
+
+
 
 
 Wanderer_GI:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Wanderer_GI.onUpdate)
